@@ -1,5 +1,5 @@
 pragma solidity ^0.6.6;
-
+//0x51924eec444757366ddfa62d2c230bcec5c88c0b
 contract ERC20Basic {
 
     string public constant name = "PAKCOIN";
