@@ -1,7 +1,7 @@
 pragma solidity 0.6.6;
 
 import "./token.sol";
-
+//0x51924eec444757366ddfa62d2c230bcec5c88c0b
 contract mintableToken is ERC20Basic 
 {
     using SafeMath for uint256;
