@@ -1,107 +1,42 @@
-pragma solidity ^0.6.6;
-//0x3de42fc186dfe96dabd245dda5be8f65273f8872
-contract ERC20Basic {
+//0x5da13a0AB1b9285827d12bC1d2F62F929B8d97B1
 
-    string public constant name = "PAKCOIN";
-    string public constant symbol = "PKC";
-    uint8 public constant decimals = 4;  
+pragma solidity 0.6.8;
 
-    address public creator;
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol";
+
+contract timeLocked
+{
+    uint unlockDate;
+    uint createdAt;
     address public owner;
-    uint public unlockDate;
-    uint public createdAt;
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Transfer(address indexed from, address indexed to, uint tokens);
-    event Received(address _from, uint _amount);
-    event Withdrew(address _to, uint _amount, string message);
-   
-
-    mapping(address => uint256) balances;
-
-    mapping(address => mapping (address => uint256)) allowed;
-    
-    uint256 totalSupply_;
-
-    using SafeMath for uint256;
+    address public creator;
+   event Received(address,uint);
+    event withdrew(address,uint);
 
 
-   constructor() public {  
-	totalSupply_ = 1000000 *(10**uint256(decimals));
-	balances[msg.sender] = totalSupply_;
-    }  
-    
-    function TimeLockedWallet(address _owner, uint _unlockDate) public 
-    {
-   
+modifier onlyOwner
+{
+    require(msg.sender == owner);
+    _;
+}
+
+constructor (address _owner, address _creator, uint256 _unlockDate) public
+{
+    creator = _creator;
     owner = _owner;
     unlockDate = _unlockDate;
-}
-receive() payable external { 
-  emit Received(msg.sender, msg.value);
-}
-modifier onlyOwner {
-  require(msg.sender == owner);
-  _;
+    createdAt = now;
 }
 
-function withdraw() onlyOwner public {
-   require( now <= unlockDate);
-   msg.sender.transfer(address(this).balance);
-   Withdrew(msg.sender, address(this).balance,"transferred");
+receive () payable external
+{
+   emit Received(msg.sender,msg.value);
 }
 
-
-
-
-    function totalSupply() public view returns (uint256) {
-	return totalSupply_;
-    }
-    
-    function balanceOf(address tokenOwner) public view returns (uint) {
-        return balances[tokenOwner];
-    }
-
-    function transfer(address receiver, uint numTokens) payable public returns (bool) {
-        require(numTokens <= balances[msg.sender]);
-        balances[msg.sender] = balances[msg.sender].sub(numTokens);
-        balances[receiver] = balances[receiver].add(numTokens);
-        emit Transfer(msg.sender, receiver, numTokens);
-        return true;
-    }
-
-    function approve(address delegate, uint numTokens) public returns (bool) {
-        allowed[msg.sender][delegate] = numTokens;
-        Approval(msg.sender, delegate, numTokens);
-        return true;
-    }
-
-    function allowance(address owner, address delegate) public view returns (uint) {
-        return allowed[owner][delegate];
-    }
-
-    function transferFrom(address owner, address buyer, uint numTokens) payable public returns (bool) {
-        require(numTokens <= balances[owner]);    
-        require(numTokens <= allowed[owner][msg.sender]);
-    
-        balances[owner] = balances[owner].sub(numTokens);
-        allowed[owner][msg.sender] = allowed[owner][msg.sender].sub(numTokens);
-        balances[buyer] = balances[buyer].add(numTokens);
-        Transfer(owner, buyer, numTokens);
-        return true;
-    }
-
- 
-    }
-
-library SafeMath { 
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-      assert(b <= a);
-      return a - b;
-    }
-    
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-      uint256 c = a + b;
-      assert(c >= a);
-      return c;
-    }
+function withdraw () onlyOwner public payable
+{
+    require(now <= unlockDate, "date is before");
+    msg.sender.transfer(address(this).balance);
+    emit withdrew(msg.sender,address(this).balance);
+}
 }
